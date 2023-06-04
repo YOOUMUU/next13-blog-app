@@ -8,6 +8,14 @@ interface Params {
   };
 }
 
+export const generateStaticParams = () => {
+  const posts = getSortedPostsData();
+
+  return posts.map(({ id }) => ({
+    postId: id,
+  }));
+};
+
 export const generateMetadata = ({ params }: Params) => {
   const posts = getSortedPostsData();
 
@@ -43,10 +51,7 @@ const Post = async ({ params }: Params) => {
       <h1 className="text-3xl font-bold mt-4 mb-0">{title}</h1>
       <p className="text-md mt-1">{date}</p>
       <article className="mt-4 ">
-        <section
-          className="no-style"
-          dangerouslySetInnerHTML={{ __html: contentHtml }}
-        />
+        <section dangerouslySetInnerHTML={{ __html: contentHtml }} />
         <p className="mt-4 text-xl font-semibold text-sky-500">
           <Link href="/">← Baxk to home</Link>
         </p>
