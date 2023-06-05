@@ -1,5 +1,7 @@
 import Post from '@/components/Post';
 
+export const revalidate = 10;
+
 export default function Home() {
   return (
     <main className="px-6 mx-auto">
