@@ -1,7 +1,7 @@
 import { getPostMeta } from '@/lib/posts';
 import Link from 'next/link';
 
-export const revalidate = 0;
+export const revalidate = 10;
 
 interface Props {
   params: {
@@ -9,15 +9,15 @@ interface Props {
   };
 }
 
-// export const generateStaticParams = async () => {
-//   const posts = await getPostMeta();
+export const generateStaticParams = async () => {
+  const posts = await getPostMeta();
 
-//   if (!posts) return [];
+  if (!posts) return [];
 
-//   const tags = posts.map((post) => post.tags).flat();
+  const tags = posts.map((post) => post.tags).flat();
 
-//   return Array.from(tags).map((tag) => ({ tag }));
-// };
+  return Array.from(tags).map((tag) => ({ tag }));
+};
 
 export const generateMetadata = async ({ params: { tag } }: Props) => {
   return {

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import 'highlight.js/styles/github-dark.css';
 
-export const revalidate = 0;
+export const revalidate = 10;
 
 interface Params {
   params: {
@@ -11,15 +11,15 @@ interface Params {
   };
 }
 
-// export const generateStaticParams = async () => {
-//   const posts = await getPostMeta();
+export const generateStaticParams = async () => {
+  const posts = await getPostMeta();
 
-//   if (!posts) return [];
+  if (!posts) return [];
 
-//   return posts.map(({ id }) => ({
-//     postId: id,
-//   }));
-// };
+  return posts.map(({ id }) => ({
+    postId: id,
+  }));
+};
 
 export const generateMetadata = async ({ params: { postId } }: Params) => {
   const post = await getPostByName(`${postId}.mdx`);
