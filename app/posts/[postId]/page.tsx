@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import 'highlight.js/styles/github-dark.css';
 
 export const revalidate = 86400;
-export const config = { runtime: 'edge' };
+export const runtime = 'edge';
 
 interface Params {
   params: {
