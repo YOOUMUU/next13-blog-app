@@ -1,4 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = { experimental: { runtime: 'edge' } };
 
-module.exports = nextConfig
+module.exports = nextConfig;
