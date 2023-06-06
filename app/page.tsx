@@ -1,7 +1,7 @@
 import Post from '@/components/Post';
 import MyProfilePic from '@/components/MyProfilePic';
 
-export const revalidate = 10;
+export const revalidate = 86400;
 
 export default function Home() {
   return (
