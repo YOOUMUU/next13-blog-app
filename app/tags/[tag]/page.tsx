@@ -2,6 +2,7 @@ import { getPostMeta } from '@/lib/posts';
 import Link from 'next/link';
 
 export const revalidate = 86400;
+export const config = { runtime: 'edge' };
 
 interface Props {
   params: {
