@@ -1,5 +1,3 @@
-export const runtime = 'edge';
-
 import Navbar from '@/components/Navbar';
 import { Metadata } from 'next';
 import 'styles/globals.css';
