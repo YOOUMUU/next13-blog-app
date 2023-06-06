@@ -1,60 +1,89 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-import { remark } from 'remark';
-import html from 'remark-html';
+import { compileMDX } from 'next-mdx-remote/rsc';
 
-const postsDirectory = path.join(process.cwd(), 'posts');
+type Filetree = {
+  tree: [
+    {
+      path: string;
+    }
+  ];
+};
 
-export function getSortedPostsData() {
-  // Get file names under /posts
-  const fileNames = fs.readdirSync(postsDirectory);
+export async function getPostByName(
+  fileName: string
+): Promise<BLogPost | undefined> {
+  const res = await fetch(
+    `https://raw.githubusercontent.com/YOOUMUU/test-blogposts/main/${fileName}`,
+    {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        'x-github-api-version': '2022-11-28',
+      },
+    }
+  );
 
-  const allPostsData = fileNames.map((fileName) => {
-    // Remove ".md" from file name to get id
-    const id = fileName.replace(/\.md$/, '');
+  if (!res.ok) return undefined;
 
-    // Read markdown file as string
-    const fullPath = path.join(postsDirectory, fileName);
-    const fileContents = fs.readFileSync(fullPath, 'utf-8');
+  const rawMDX = await res.text();
 
-    // Use gray-matter to parse the post metadata section
-    const matterResult = matter(fileContents);
+  if (rawMDX === '404: Not Found') return undefined;
 
-    // Combine the data with the id
-    const blogPost: BlogPost = {
-      id,
-      title: matterResult.data.title,
-      date: matterResult.data.date,
-    };
-
-    return blogPost;
+  const { content, frontmatter } = await compileMDX<{
+    title: string;
+    date: string;
+    tags: string[];
+  }>({
+    source: rawMDX,
+    options: {
+      parseFrontmatter: true,
+    },
   });
 
-  // Sort posts by date
-  return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1));
-}
+  const id = fileName.replace(/\.mdx$/, '');
 
-export async function getPostData(id: string) {
-  const fullPath = path.join(postsDirectory, `${id}.md`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
-
-  // Use gray-matter to parse the post metadata section
-  const matterResult = matter(fileContents);
-
-  // Use remark to convert markdown into HTML string
-  const processedContent = await remark()
-    .use(html)
-    .process(matterResult.content);
-  const contentHtml = processedContent.toString();
-
-  // Combine the data with the id and contentHtml
-  const blogPostWithHTML: BlogPost & { contentHtml: string } = {
-    id,
-    contentHtml,
-    title: matterResult.data.title,
-    date: matterResult.data.date,
+  const bloogPostObj: BLogPost = {
+    meta: {
+      id,
+      title: frontmatter.title,
+      date: frontmatter.date,
+      tags: frontmatter.tags,
+    },
+    content,
   };
 
-  return blogPostWithHTML;
+  return bloogPostObj;
+}
+
+export async function getPostMeta(): Promise<Meta[] | undefined> {
+  const res = await fetch(
+    'https://api.github.com/repos/YOOUMUU/test-blogposts/git/trees/main?recursive=1',
+    {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        'x-github-api-version': '2022-11-28',
+      },
+    }
+  );
+
+  if (!res.ok) return undefined;
+
+  const repoFiletree: Filetree = await res.json();
+
+  const filesArray = repoFiletree.tree
+    .map((obj) => obj.path)
+    .filter((path) => path.endsWith('.mdx'));
+
+  const posts: Meta[] = [];
+
+  for (const file of filesArray) {
+    const post = await getPostByName(file);
+
+    if (post) {
+      const { meta } = post;
+      posts.push(meta);
+    }
+  }
+
+  return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }

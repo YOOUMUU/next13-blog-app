@@ -1,6 +1,8 @@
-import { getPostData, getSortedPostsData } from '@/lib/posts';
+import { getPostMeta, getPostByName } from '@/lib/posts';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+
+export const revalidate = 0;
 
 interface Params {
   params: {
@@ -8,20 +10,18 @@ interface Params {
   };
 }
 
-export const generateStaticParams = () => {
-  const posts = getSortedPostsData();
+// export const generateStaticParams = async () => {
+//   const posts = await getPostMeta();
 
-  return posts.map(({ id }) => ({
-    postId: id,
-  }));
-};
+//   if (!posts) return [];
 
-export const generateMetadata = ({ params }: Params) => {
-  const posts = getSortedPostsData();
+//   return posts.map(({ id }) => ({
+//     postId: id,
+//   }));
+// };
 
-  const { postId } = params;
-
-  const post = posts.find(({ id }) => id === postId);
+export const generateMetadata = async ({ params: { postId } }: Params) => {
+  const post = await getPostByName(`${postId}.mdx`);
 
   if (!post)
     return {
@@ -30,32 +30,36 @@ export const generateMetadata = ({ params }: Params) => {
     };
 
   return {
-    title: post.title,
-    description: post.title,
+    title: post.meta.title,
+    content: post.content,
   };
 };
 
-const Post = async ({ params }: Params) => {
-  const posts = getSortedPostsData();
-
-  const { postId } = params;
-
-  const post = posts.find(({ id }) => id === postId);
+const Post = async ({ params: { postId } }: Params) => {
+  const post = await getPostByName(`${postId}.mdx`);
 
   if (!post) notFound();
 
-  const { title, date, contentHtml } = await getPostData(postId);
+  const { meta, content } = post;
+
+  const tags = meta.tags.map((tag, i) => (
+    <Link key={i} href={`/tags/${tag}`}>
+      {tag}
+    </Link>
+  ));
 
   return (
-    <div className="container dark:text-white mx-auto">
-      <h1 className="text-3xl font-bold mt-4 mb-0">{title}</h1>
-      <p className="text-md mt-1">{date}</p>
-      <article className="mt-4 ">
-        <section dangerouslySetInnerHTML={{ __html: contentHtml }} />
-        <p className="mt-4 text-xl font-semibold text-sky-500">
-          <Link href="/">← Baxk to home</Link>
-        </p>
-      </article>
+    <div className="prose container dark:text-white mx-auto">
+      <h1 className="text-3xl font-bold mt-4 mb-0">{meta.title}</h1>
+      <p className="text-md mt-1">{meta.date}</p>
+      <article>{content}</article>
+      <section>
+        <h3>Related:</h3>
+        <div className="flex flex-row gap-4">{tags}</div>
+      </section>
+      <p className="mt-4 text-xl font-semibold text-sky-500">
+        <Link href="/">← Back to home</Link>
+      </p>
     </div>
   );
 };

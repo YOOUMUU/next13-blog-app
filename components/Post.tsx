@@ -1,8 +1,11 @@
-import { getSortedPostsData } from '@/lib/posts';
+import { getPostMeta } from '@/lib/posts';
 import Link from 'next/link';
 
-const Post = () => {
-  const posts = getSortedPostsData();
+const Post = async () => {
+  const posts = await getPostMeta();
+
+  if (!posts)
+    return <p className="mt-10 text-center">Sorry, no posts available.</p>;
 
   return (
     <section className="mt-6 mx-auto max-w-2xl">
