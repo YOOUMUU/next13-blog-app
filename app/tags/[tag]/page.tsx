@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import { getPostMeta } from '@/lib/posts';
 import Link from 'next/link';
 

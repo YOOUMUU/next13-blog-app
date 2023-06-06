@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import Post from '@/components/Post';
 import MyProfilePic from '@/components/MyProfilePic';
 
